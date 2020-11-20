@@ -1,0 +1,2 @@
+''' myspinclass.routes
+'''

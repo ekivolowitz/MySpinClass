@@ -1,0 +1,4 @@
+venv/
+*.pyc
+test.py
+node_modules/

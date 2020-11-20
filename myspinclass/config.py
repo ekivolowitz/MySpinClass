@@ -1,0 +1,4 @@
+''' myspinclass.config
+'''
+
+STUB = True
