@@ -8,19 +8,22 @@ class CurrentSpeed extends React.Component {
     }
   
     tick() {
-      fetch("http://localhost:5000/bluetooth/device/read/speed")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            currentSpeed: result.speed,
-          });
-          this.props.parentCallback(result.speed)
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
+      if(this.state.active) {
+        fetch("http://localhost:5000/bluetooth/device/read/speed")
+        .then(res => res.json())
+        .then(
+          (result) => {
+            this.setState({
+              currentSpeed: result.speed,
+            });
+            this.props.parentCallback(result.speed)
+          },
+          (error) => {
+            console.log(error)
+          }
+        )
+  
+      }
     }
   
     componentDidMount() {
@@ -32,12 +35,21 @@ class CurrentSpeed extends React.Component {
     }
   
     render() {
-      return (
-        <div className={styles.upper_middle_top_card}>
-          <p>Current Speed</p>
-          <h1>{this.state.currentSpeed} mph</h1>
-        </div>
-      );
+      if(this.state.active) {
+        return (
+          <div className={styles.upper_middle_top_card}>
+            <p>Current Speed</p>
+            <h1>{this.state.currentSpeed} mph</h1>
+          </div>
+        );  
+      } else {
+        return (
+          <div className={styles.upper_middle_top_card}>
+            <p>Current Speed</p>
+            <h1>0 mph</h1>
+          </div>
+        )
+      }
     }
   }
 

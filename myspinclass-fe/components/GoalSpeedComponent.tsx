@@ -8,15 +8,27 @@ type Props = {
 class GoalSpeed extends React.Component {
     constructor(props) {
       super(props);
+      this.state = {
+        active: this.props.active
+      }
     }
   
     render() {
-      return (
-        <div className={styles.upper_middle_top_card}>
+      if(this.state.active) {
+        return (
+          <div className={styles.upper_middle_top_card}>
+            <p>Goal Speed</p>
+            <h1>{this.props.goalSpeed} mph</h1>
+          </div>
+        );  
+      } else {
+        return (
+          <div className={styles.upper_middle_top_card}>
           <p>Goal Speed</p>
-          <h1>{this.props.goalSpeed} mph</h1>
+          <h1>0 mph</h1>
         </div>
-      );
+        )
+      }
     }
   }
 

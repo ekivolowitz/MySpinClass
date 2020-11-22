@@ -11,16 +11,20 @@ class Workout extends React.Component {
 
   constructor(props) {
     super(props)
+
     this.getWorkout = this.getWorkout.bind(this)
+    this.handleTimerCallback = this.handleTimerCallback.bind(this)
+    this.handleCurrentSpeedCallback = this.handleCurrentSpeedCallback.bind(this)
+    this.handleActiveCallback = this.handleActiveCallback.bind(this)
 
     this.state = {
       currentSpeed: 0,
-      goalSpeed: 13,
+      goalSpeed: 0,
       currentDistance: 0,
       goalDistance: 0,
-      currentTime: 5,
+      currentTime: 0,
       blocks: [],
-      workoutId: "NONAME",
+      workoutId: null,
       active: false,
       finished: false
     }
@@ -29,6 +33,7 @@ class Workout extends React.Component {
 
   handleCurrentSpeedCallback = (childData) => { 
     this.setState({
+      ...this.state,
       currentSpeed: childData
     })
   }
@@ -38,20 +43,25 @@ class Workout extends React.Component {
       ...this.state,
       finished: true
     })
-    console.log("finished")
+  }
+
+  handleActiveCallback = (e) => {
+    console.log("active callback" + e)
+    this.setState({
+      ...this.state,
+      active: true
+    })
   }
 
   getWorkout = () => {
-    fetch("http://localhost:5000/workout/workout_id/5")
+    fetch("http://localhost:5000/workout/workout_id/25")
     .then(res => res.json())
     .then(
       (result) => {
-        let time = result.blocks[0].time
         this.setState({
           ...this.state,
           workoutId: result.workout,
           blocks: result.blocks,
-          currentTime: time,
           active: true
         })
         console.log(this.state)
@@ -66,31 +76,34 @@ class Workout extends React.Component {
   }
 
   render() {
-    return (
-      <div className={styles.container}>
+    if(this.state.workoutId === null) {
+      return null    
+    }
+    else {
+      return (
+        <div className={styles.container}>
 
-        <main className={styles.main}>
+          <main className={styles.main}>
 
-          <div className={styles.left_grid}>
-              <h3>Data Grid</h3>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.upper_middle}>
-              <GoalSpeed goalSpeed={this.state.goalSpeed}/>
-              <CurrentSpeed parentCallback = {this.handleCurrentSpeedCallback} active={this.state.active}/>
+            <div className={styles.left_grid}>
+                <h3>Data Grid</h3>
             </div>
-              <Timer parentCallback={this.handleTimerCallback} active={this.state.active} seconds={this.state.currentTime} goalSpeed={this.state.goalSpeed} currentSpeed={this.state.currentSpeed}/>
-          </div>
-          <div className={styles.right_grid}>
-            {this.state.blocks.map( (item, index) => {
-              if(index != 0) {
+            <div className={styles.grid}>
+              <div className={styles.upper_middle}>
+                <GoalSpeed goalSpeed={this.state.goalSpeed}/>
+                <CurrentSpeed parentCallback = {this.handleCurrentSpeedCallback} active={this.state.active}/>
+              </div>
+                <Timer parentCallback={this.handleTimerCallback} activeCallback={this.handleActiveCallback} active={this.state.active} seconds={this.state.currentTime} goalSpeed={this.state.goalSpeed} currentSpeed={this.state.currentSpeed}/>
+            </div>
+            <div className={styles.right_grid}>
+              {this.state.blocks.map( (item, index) => {
                 return <Zone time={item.time} intensity={item.intensity} id={index}/>
-              }
-            })}
-          </div>
-        </main>
-      </div>
-    )
+              })}
+            </div>
+          </main>
+        </div>
+      )
+    }
   }
 }
 

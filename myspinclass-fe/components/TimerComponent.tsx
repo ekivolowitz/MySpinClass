@@ -9,17 +9,23 @@ class Timer extends React.Component {
       super(props);
       this.state = { 
         seconds: props.seconds,
+        active: false
       };
+
+      this.activateButton = this.activateButton.bind(this)
     }
   
     tick() {
         if(this.state.seconds - 1 >= 0 ) {
           this.setState(state => ({
-            seconds: state.seconds - 1
+            ...this.state,
+            seconds: state.seconds - 1,
+            
           }));
         } else {
           this.setState({
-            seconds: 0
+            seconds: 0,
+            ...this.state
           })
           // this.props.parentCallback()
         }
@@ -35,6 +41,7 @@ class Timer extends React.Component {
 
     isAtGoal(props) {
       var goal = props.currentSpeed >= props.goalSpeed ? true : false
+      console.log("Current speed: " + props.currentSpeed + " goalSpeed: " + props.goalSpeed)
       if(props.currentSpeed == props.goalSpeed || (props.currentSpeed == 0 && props.goalSpeed == 0)) {
         return (
           <div className={styles.lower_middle_card_default}>
@@ -57,9 +64,25 @@ class Timer extends React.Component {
         );
       }
     }
+
+    activateButton() {
+      this.setState({
+        ...this.state,
+        active: true
+      })
+
+      // callback?
+      this.props.activeCallback(this.state)
+    }
   
     render() {
-      return <this.isAtGoal currentSpeed={this.props.currentSpeed} goalSpeed={this.props.goalSpeed} seconds={this.state.seconds}/>
+      if(this.state.active) {
+        return <this.isAtGoal currentSpeed={this.props.currentSpeed} goalSpeed={this.props.goalSpeed} seconds={this.state.seconds}/>
+      } else {
+        return <div className={styles.lower_middle_card_default}>
+          <button onClick={this.activateButton}>Begin</button>
+        </div>
+      }
     }
   }
 

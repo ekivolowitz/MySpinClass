@@ -112,11 +112,11 @@
 
 
 .right_grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: block;
   width: 20vw;
   height: 100vh;
   background-color: lightskyblue;
+  overflow-y: auto;
 }
 
 .zone_card {

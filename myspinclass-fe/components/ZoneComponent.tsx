@@ -31,15 +31,15 @@ class Zone extends React.Component {
     setColor(props) {
         if(props.intensity === "BASE") {
             return (<div className={styles.zone_card} style={{backgroundColor: 'green'}}>
-                <h1>{props.currentTime}</h1>
+                <h1>{Math.floor(props.currentTime / 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}:{(props.currentTime % 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}</h1>
             </div>)
         } else if (props.intensity === "PUSH") {
             return (<div className={styles.zone_card} style={{backgroundColor: 'orange'}}>
-                <h1>{props.currentTime}</h1>
+                <h1>{Math.floor(props.currentTime / 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}:{(props.currentTime % 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}</h1>
             </div>)
         } else {
             return (<div className={styles.zone_card} style={{backgroundColor: 'red'}}>
-                <h1>{props.currentTime}</h1>
+                <h1>{Math.floor(props.currentTime / 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}:{(props.currentTime % 60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}</h1>
             </div>)
         }
     }   
