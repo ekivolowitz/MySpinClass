@@ -4,6 +4,7 @@ as a "ghost" of prerecorded routes. It will allow you to read FIT file data. FIT
 
 To map the route, we can use google maps. [Here](https://developers.google.com/maps/documentation/javascript/examples/polygon-simple) is an example that will do what I think we need.
 
+# Tour De France Recreation
 
 Important bits here:
 
