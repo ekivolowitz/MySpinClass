@@ -7,24 +7,7 @@ class CurrentSpeed extends React.Component {
       this.state = { currentSpeed: 0 };
     }
   
-    tick() {
-      if(this.state.active) {
-        fetch("http://localhost:5000/bluetooth/device/read/speed")
-        .then(res => res.json())
-        .then(
-          (result) => {
-            this.setState({
-              currentSpeed: result.speed,
-            });
-            this.props.parentCallback(result.speed)
-          },
-          (error) => {
-            console.log(error)
-          }
-        )
-  
-      }
-    }
+
   
     componentDidMount() {
       this.interval = setInterval(() => this.tick(), 1000);
@@ -35,11 +18,11 @@ class CurrentSpeed extends React.Component {
     }
   
     render() {
-      if(this.state.active) {
+      if(this.props.active) {
         return (
           <div className={styles.upper_middle_top_card}>
             <p>Current Speed</p>
-            <h1>{this.state.currentSpeed} mph</h1>
+            <h1>{this.props.currentSpeed} mph</h1>
           </div>
         );  
       } else {

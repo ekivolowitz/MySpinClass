@@ -8,13 +8,10 @@ type Props = {
 class GoalSpeed extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {
-        active: this.props.active
-      }
     }
   
     render() {
-      if(this.state.active) {
+      if(this.props.active) {
         return (
           <div className={styles.upper_middle_top_card}>
             <p>Goal Speed</p>

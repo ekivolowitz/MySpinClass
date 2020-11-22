@@ -23,12 +23,31 @@ class Workout extends React.Component {
       currentDistance: 0,
       goalDistance: 0,
       currentTime: 0,
+      currentBlockIndex: -1,
       blocks: [],
       workoutId: null,
       active: false,
       finished: false
     }
+  }
 
+  mapZoneToSpeed = (zone) => {
+    let speed = 0
+    switch(zone){
+      case "BASE": {
+        speed = 12.5
+        break
+      }
+      case "PUSH": { 
+        speed = 13
+        break
+      }
+      case "SPRINT": {
+        speed = 13.5
+        break
+      }
+    }
+    return speed
   }
 
   handleCurrentSpeedCallback = (childData) => { 
@@ -46,25 +65,73 @@ class Workout extends React.Component {
   }
 
   handleActiveCallback = (e) => {
-    console.log("active callback" + e)
+    let nextIndex = this.state.currentBlockIndex + 1
+    let nextZone = this.mapZoneToSpeed(this.state.blocks[nextIndex].intensity)
     this.setState({
-      ...this.state,
-      active: true
+      active: e.active,
+      currentBlockIndex: nextIndex,
+      currentTime: this.state.blocks[nextIndex].time,
+      goalSpeed: nextZone
     })
   }
 
+componentWillUnmount() {
+  clearInterval(this.timerInterval)
+  clearInterval(this.setCurrentSpeedInterval)
+}
+
+  setTimerInterval() {
+    if(this.state.active) {
+      if(this.state.currentTime - 1 >= 0 ) {
+        this.setState({
+          currentTime: this.state.currentTime - 1,            
+        });
+      } else {
+        let nextIndex = this.state.currentBlockIndex + 1
+        if(nextIndex >= this.state.blocks.length) {
+          console.log("reached the end of the blocks")
+          this.setState({
+            active: false
+          })
+        } else {
+          this.setState({
+            currentTime: this.state.blocks[nextIndex].time,
+            currentBlockIndex: nextIndex,
+            goalSpeed: this.mapZoneToSpeed(this.state.blocks[nextIndex].intensity)
+          })
+        }
+
+
+      }  
+    }
+  }
+
+  setCurrentSpeedInterval() {
+    if(this.state.active) {
+      fetch("http://localhost:5000/bluetooth/device/read/speed")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            currentSpeed: result.speed,
+          });
+        },
+        (error) => {
+          console.log(error)
+        }
+      )
+    }
+  }
+
   getWorkout = () => {
-    fetch("http://localhost:5000/workout/workout_id/25")
+    fetch("http://localhost:5000/workout/workout_id/3")
     .then(res => res.json())
     .then(
       (result) => {
         this.setState({
-          ...this.state,
           workoutId: result.workout,
           blocks: result.blocks,
-          active: true
         })
-        console.log(this.state)
       }, (error) => {
         console.log(error)
       }
@@ -73,11 +140,13 @@ class Workout extends React.Component {
 
   componentDidMount() {
     this.getWorkout()
+    this.timerInterval = setInterval(() => this.setTimerInterval(), 1000)
+    this.speedInterval = setInterval(() => this.setCurrentSpeedInterval(), 1000)
   }
 
   render() {
     if(this.state.workoutId === null) {
-      return null    
+      return null
     }
     else {
       return (
@@ -90,14 +159,15 @@ class Workout extends React.Component {
             </div>
             <div className={styles.grid}>
               <div className={styles.upper_middle}>
-                <GoalSpeed goalSpeed={this.state.goalSpeed}/>
-                <CurrentSpeed parentCallback = {this.handleCurrentSpeedCallback} active={this.state.active}/>
+                <GoalSpeed goalSpeed={this.state.goalSpeed} active={this.state.active}/>
+                <CurrentSpeed active={this.state.active} currentSpeed={this.state.currentSpeed}/>
               </div>
-                <Timer parentCallback={this.handleTimerCallback} activeCallback={this.handleActiveCallback} active={this.state.active} seconds={this.state.currentTime} goalSpeed={this.state.goalSpeed} currentSpeed={this.state.currentSpeed}/>
+                <Timer parentCallback={this.handleTimerCallback} activeCallback={this.handleActiveCallback} active={this.state.active} currentTime={this.state.currentTime} goalSpeed={this.state.goalSpeed} currentSpeed={this.state.currentSpeed}/>
             </div>
             <div className={styles.right_grid}>
               {this.state.blocks.map( (item, index) => {
-                return <Zone time={item.time} intensity={item.intensity} id={index}/>
+                if(index > this.state.currentBlockIndex)
+                  return <Zone time={item.time} intensity={item.intensity} id={index}/>
               })}
             </div>
           </main>
