@@ -45,3 +45,31 @@ def bluetooth_get_speed():
         "speed" : connection.read_speed()
     })
 
+@bp.route('/workout/<workout_id>/<num_blocks>', methods=['GET'])
+def get_workout(workout_id, num_blocks):
+    def workout_factory():
+        rand_int = random.randint(0,10)
+        rand_time = random.randint(30, 90)
+        if rand_int < 5:
+            return {
+                "time" : rand_time,
+                "intensity" : "BASE"
+            }
+        elif rand_int < 8:
+            return {
+                "time" : rand_time,
+                "intensity" : "PUSH"
+            }
+        else:
+            return {
+                "time" : rand_time,
+                "intensity": "SPRINT"
+            }
+    workout = []
+    for _ in range(int(num_blocks)):
+        workout.append(workout_factory())
+    
+    return json.dumps({
+        "workout" : workout_id,
+        "blocks" : workout
+    })

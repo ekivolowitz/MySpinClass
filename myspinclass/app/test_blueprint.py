@@ -47,7 +47,7 @@ def bluetooth_get_speed():
 def get_workout(workout_id, num_blocks):
     def workout_factory():
         rand_int = random.randint(0,10)
-        rand_time = random.randint(5, 10)
+        rand_time = random.randint(30, 90)
         if rand_int < 5:
             return {
                 "time" : rand_time,

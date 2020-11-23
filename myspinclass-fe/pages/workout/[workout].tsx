@@ -108,7 +108,7 @@ componentWillUnmount() {
 
   setCurrentSpeedInterval() {
     if(this.state.active) {
-      fetch("http://localhost:5000/bluetooth/device/read/speed")
+      fetch("http://192.168.1.110:5000/bluetooth/device/read/speed")
       .then(res => res.json())
       .then(
         (result) => {
@@ -124,7 +124,7 @@ componentWillUnmount() {
   }
 
   getWorkout = () => {
-    fetch("http://localhost:5000/workout/workout_id/3")
+    fetch("http://192.168.1.110:5000/workout/workout_id/50")
     .then(res => res.json())
     .then(
       (result) => {

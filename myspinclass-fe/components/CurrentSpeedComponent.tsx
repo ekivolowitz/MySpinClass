@@ -7,16 +7,6 @@ class CurrentSpeed extends React.Component {
       this.state = { currentSpeed: 0 };
     }
   
-
-  
-    componentDidMount() {
-      this.interval = setInterval(() => this.tick(), 1000);
-    }
-  
-    componentWillUnmount() {
-      clearInterval(this.interval);
-    }
-  
     render() {
       if(this.props.active) {
         return (
