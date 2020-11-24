@@ -7,7 +7,9 @@ import GoalSpeed from '../../components/GoalSpeedComponent'
 import Zone from '../../components/ZoneComponent'
 import { formatSeconds, mapZoneToSpeed } from "../../utils/common"
 import { API_BASE_URL } from '../../envConstants'
-import { Container, Typography } from '@material-ui/core'
+import { Container, Grid, Typography } from '@material-ui/core'
+import { Flipper, Flipped } from 'react-flip-toolkit'
+import { UpperCard } from '../../components/UpperCard'
 
 const Workout = () => {
 
@@ -125,7 +127,6 @@ const Workout = () => {
     };
   }, [state.workoutId, state.active]);
 
-  console.log(error)
   if (error) {
     return (
       <Container
@@ -137,51 +138,89 @@ const Workout = () => {
     );
   }
 
+  console.log(state.blocks)
+
   if (state.workoutId === null) {
     return null;
   } else {
     return (
-      <div className={styles.container}>
-        <Head>
-          <title>
-            Workout ({formatSeconds(state.currentTime)} Remaining) | MySpinClass
-          </title>
-        </Head>
-        <main className={styles.main}>
-          <div className={styles.left_grid}>
-            <h3>Data Grid</h3>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.upper_middle}>
-              <GoalSpeed goalSpeed={state.goalSpeed} active={state.active} />
-              <CurrentSpeed
+      <Flipper flipKey={state.active}>
+        <div className={styles.container}>
+          <Head>
+            <title>
+              Workout ({formatSeconds(state.currentTime)} Remaining) |
+              MySpinClass
+            </title>
+          </Head>
+          <main className={styles.main}>
+            <div className={styles.left_grid}>
+              <h3>Data Grid</h3>
+            </div>
+            <div className={styles.grid}>
+              <Grid container>
+                {[
+                  {
+                    title: "Goal Speed",
+                    label: `${state.goalSpeed || 0} mph`,
+                  },
+                  {
+                    title: "Current Speed",
+                    label: `${state.currentSpeed || 0} mph`,
+                  },
+                ].map((obj) => (
+                  <Grid
+                    item
+                    xs={6}
+                    alignItems="center"
+                    container
+                    direction="column"
+                  >
+                    <Flipped flipId={obj.title}>
+                      <div
+                        className={styles.upper_middle_top_card}
+                        style={{
+                          transform: `translateY(${state.active ? 0 : -200}%)`,
+                        }}
+                      >
+                        <UpperCard
+                          title={obj.title}
+                          label={obj.label}
+                        />
+                      </div>
+                    </Flipped>
+                  </Grid>
+                ))}
+              </Grid>
+              <Timer
+                parentCallback={handleTimerCallback}
+                activeCallback={handleActiveCallback}
                 active={state.active}
+                currentTime={state.currentTime}
+                goalSpeed={state.goalSpeed}
                 currentSpeed={state.currentSpeed}
               />
             </div>
-            <Timer
-              parentCallback={handleTimerCallback}
-              activeCallback={handleActiveCallback}
-              active={state.active}
-              currentTime={state.currentTime}
-              goalSpeed={state.goalSpeed}
-              currentSpeed={state.currentSpeed}
-            />
-          </div>
-          <div className={styles.right_grid}>
-            {state.blocks
-              .filter((item, index) => index > state.currentBlockIndex)
-              .map((item, index) => (
-                <Zone
-                  key={index}
-                  time={item.time}
-                  intensity={item.intensity}
-                  id={index}
-                />
+            <div className={styles.right_grid}>
+              {state.blocks.map((item, index) => (
+                <Flipped flipId={`zone-${index}`} stagger>
+                  <div
+                    style={{
+                      transform: `translateX(${state.active ? 0 : 100}%)`,
+                    }}
+                  >
+                    <Zone
+                      key={index}
+                      time={item.time}
+                      intensity={item.intensity}
+                      id={index}
+                    />
+                  </div>
+                </Flipped>
               ))}
-          </div>
-        </main>
-      </div>
+            </div>
+          </main>
+        </div>
+      </Flipper>
     );
   }
 }

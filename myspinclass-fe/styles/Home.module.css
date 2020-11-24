@@ -58,21 +58,12 @@
   background-color: lightgreen;
 }
 
-.upper_middle {
-  width: 100vw;
-  height: 20vh;
-  display: flex;
-  align-items: center;
-}
-
 .upper_middle_top_card {
   flex: 1 1;
   height: 20vh;
   text-align: center;
   color: inherit;
   text-decoration: none;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -142,13 +133,4 @@
 
 .logo {
   height: 1em;
-}
-
-
-
-@media (max-width: 600px) {
-  .grid {
-    width: 100%;
-    flex-direction: column;
-  }
 }
