@@ -24,10 +24,8 @@ const IsAtGoal = ({ currentSpeed, goalSpeed, seconds }: IsAtGoalProps) => {
   const className = styles["lower_middle_card_" + speedDisplayType];
 
   return (
-    <div className={className}>
-      <h1>
-        {formatSeconds(seconds)}
-      </h1>
+    <div className={className} style={{ transition: "all 2s" }}>
+      <h1>{formatSeconds(seconds)}</h1>
     </div>
   );
 };
