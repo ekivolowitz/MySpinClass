@@ -7,9 +7,11 @@ import GoalSpeed from '../../components/GoalSpeedComponent'
 import Zone from '../../components/ZoneComponent'
 import { formatSeconds, mapZoneToSpeed } from "../../utils/common"
 import { API_BASE_URL } from '../../envConstants'
+import { Container, Typography } from '@material-ui/core'
 
 const Workout = () => {
 
+  const [error, setError] = useState(null)
   const [state, setState] = useState({
     currentSpeed: 0,
     goalSpeed: 0,
@@ -103,6 +105,7 @@ const Workout = () => {
           },
           (error) => {
             console.error(error);
+            setError("Error connecting to server")
           }
         );
     };
@@ -121,6 +124,18 @@ const Workout = () => {
       clearInterval(speedInterval);
     };
   }, [state.workoutId, state.active]);
+
+  console.log(error)
+  if (error) {
+    return (
+      <Container
+        maxWidth="md"
+        style={{ textAlign: "center", paddingTop: "40vh" }}
+      >
+        <Typography>{error}</Typography>
+      </Container>
+    );
+  }
 
   if (state.workoutId === null) {
     return null;
