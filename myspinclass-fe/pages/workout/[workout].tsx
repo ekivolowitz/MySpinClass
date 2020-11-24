@@ -1,180 +1,228 @@
+import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
-import { withRouter } from 'next/router'
 import styles from '../../styles/Home.module.css'
 import Timer from '../../components/TimerComponent'
 import CurrentSpeed from '../../components/CurrentSpeedComponent'
 import GoalSpeed from '../../components/GoalSpeedComponent'
 import Zone from '../../components/ZoneComponent'
-import React from 'react'
+import { formatSeconds, mapZoneToSpeed } from "../../utils/common"
+import { API_BASE_URL } from '../../envConstants'
+import { Container, Grid, Typography } from '@material-ui/core'
+import { Flipper, Flipped } from 'react-flip-toolkit'
+import { UpperCard } from '../../components/UpperCard'
 
-class Workout extends React.Component {
+const Workout = () => {
 
-  constructor(props) {
-    super(props)
+  const [error, setError] = useState(null)
+  const [state, setState] = useState({
+    currentSpeed: 0,
+    goalSpeed: 0,
+    currentDistance: 0,
+    goalDistance: 0,
+    currentTime: 0,
+    currentBlockIndex: -1,
+    blocks: [],
+    workoutId: null,
+    active: false,
+    finished: false,
+  })
 
-    this.getWorkout = this.getWorkout.bind(this)
-    this.handleTimerCallback = this.handleTimerCallback.bind(this)
-    this.handleCurrentSpeedCallback = this.handleCurrentSpeedCallback.bind(this)
-    this.handleActiveCallback = this.handleActiveCallback.bind(this)
-
-    this.state = {
-      currentSpeed: 0,
-      goalSpeed: 0,
-      currentDistance: 0,
-      goalDistance: 0,
-      currentTime: 0,
-      currentBlockIndex: -1,
-      blocks: [],
-      workoutId: null,
-      active: false,
-      finished: false
-    }
+  const handleTimerCallback = () => {
+    setState(prev => ({
+      ...prev,
+      finished: true,
+    }))
   }
 
-  mapZoneToSpeed = (zone) => {
-    let speed = 0
-    switch(zone){
-      case "BASE": {
-        speed = 12.5
-        break
-      }
-      case "PUSH": { 
-        speed = 13
-        break
-      }
-      case "SPRINT": {
-        speed = 13.5
-        break
-      }
-    }
-    return speed
-  }
-
-  handleCurrentSpeedCallback = (childData) => { 
-    this.setState({
-      ...this.state,
-      currentSpeed: childData
-    })
-  }
-
-  handleTimerCallback = () => {
-    this.setState({
-      ...this.state,
-      finished: true
-    })
-  }
-
-  handleActiveCallback = (e) => {
-    let nextIndex = this.state.currentBlockIndex + 1
-    let nextZone = this.mapZoneToSpeed(this.state.blocks[nextIndex].intensity)
-    this.setState({
-      active: e.active,
+  const handleActiveCallback = () => {
+    let nextIndex = state.currentBlockIndex + 1;
+    let nextZone = mapZoneToSpeed(state.blocks[nextIndex].intensity);
+    setState(prev => ({
+      ...prev,
+      active: true,
       currentBlockIndex: nextIndex,
-      currentTime: this.state.blocks[nextIndex].time,
-      goalSpeed: nextZone
-    })
-  }
+      currentTime: state.blocks[nextIndex].time,
+      goalSpeed: nextZone,
+    }));
+  };
 
-componentWillUnmount() {
-  clearInterval(this.timerInterval)
-  clearInterval(this.setCurrentSpeedInterval)
-}
-
-  setTimerInterval() {
-    if(this.state.active) {
-      if(this.state.currentTime - 1 >= 0 ) {
-        this.setState({
-          currentTime: this.state.currentTime - 1,            
-        });
-      } else {
-        let nextIndex = this.state.currentBlockIndex + 1
-        if(nextIndex >= this.state.blocks.length) {
-          console.log("reached the end of the blocks")
-          this.setState({
-            active: false
-          })
-        } else {
-          this.setState({
-            currentTime: this.state.blocks[nextIndex].time,
-            currentBlockIndex: nextIndex,
-            goalSpeed: this.mapZoneToSpeed(this.state.blocks[nextIndex].intensity)
-          })
-        }
-
-
-      }  
+  const setTimerInterval = async () => {
+    if (!state.active) {
+      return;
     }
-  }
+    if (state.currentTime - 1 >= 0) {
+      setState((prev) => ({
+        ...prev,
+        currentTime: prev.currentTime - 1,
+      }));
+    } else {
+      let nextIndex = state.currentBlockIndex + 1;
+      if (nextIndex >= state.blocks.length) {
+        console.log("reached the end of the blocks");
+        setState((prev) => ({
+          ...prev,
+          active: false,
+        }));
+      } else {
+        setState((prev) => ({
+          ...prev,
+          currentTime: prev.blocks[nextIndex].time,
+          currentBlockIndex: nextIndex,
+          goalSpeed: mapZoneToSpeed(prev.blocks[nextIndex].intensity),
+        }));
+      }
+    }
+  };
 
-  setCurrentSpeedInterval() {
-    if(this.state.active) {
-      fetch("http://192.168.1.110:5000/bluetooth/device/read/speed")
-      .then(res => res.json())
+  const setCurrentSpeedInterval = async () => {
+    if (!state.active) {
+      return;
+    }
+    fetch(`${API_BASE_URL}/bluetooth/device/read/speed`)
+      .then((res) => res.json())
       .then(
         (result) => {
-          this.setState({
+          setState((prev) => ({
+            ...prev,
             currentSpeed: result.speed,
-          });
+          }));
         },
         (error) => {
-          console.log(error)
+          console.error(error);
         }
-      )
+      );
+  };
+
+  useEffect(() => {
+    const getWorkout = async () => {
+      fetch(`${API_BASE_URL}/workout/workout_id/50`)
+        .then((res) => res.json())
+        .then(
+          (result) => {
+            setState((prev) => ({
+              ...prev,
+              workoutId: result.workout,
+              blocks: result.blocks,
+            }));
+          },
+          (error) => {
+            console.error(error);
+            setError("Error connecting to server")
+          }
+        );
+    };
+
+    getWorkout()
+  }, []);
+
+  useEffect(() => {
+    let timerInterval, speedInterval;
+    if (state.workoutId && state.active) {
+      timerInterval = setInterval(setTimerInterval, 1000);
+      speedInterval = setInterval(setCurrentSpeedInterval, 1000);
     }
+    return () => {
+      clearInterval(timerInterval);
+      clearInterval(speedInterval);
+    };
+  }, [state.workoutId, state.active]);
+
+  if (error) {
+    return (
+      <Container
+        maxWidth="md"
+        style={{ textAlign: "center", paddingTop: "40vh" }}
+      >
+        <Typography>{error}</Typography>
+      </Container>
+    );
   }
 
-  getWorkout = () => {
-    fetch("http://192.168.1.110:5000/workout/workout_id/50")
-    .then(res => res.json())
-    .then(
-      (result) => {
-        this.setState({
-          workoutId: result.workout,
-          blocks: result.blocks,
-        })
-      }, (error) => {
-        console.log(error)
-      }
-    )
-  }
+  console.log(state.blocks)
 
-  componentDidMount() {
-    this.getWorkout()
-    this.timerInterval = setInterval(() => this.setTimerInterval(), 1000)
-    this.speedInterval = setInterval(() => this.setCurrentSpeedInterval(), 1000)
-  }
-
-  render() {
-    if(this.state.workoutId === null) {
-      return null
-    }
-    else {
-      return (
+  if (state.workoutId === null) {
+    return null;
+  } else {
+    return (
+      <Flipper flipKey={state.active}>
         <div className={styles.container}>
-
+          <Head>
+            <title>
+              Workout ({formatSeconds(state.currentTime)} Remaining) |
+              MySpinClass
+            </title>
+          </Head>
           <main className={styles.main}>
-
             <div className={styles.left_grid}>
-                <h3>Data Grid</h3>
+              <h3>Data Grid</h3>
             </div>
             <div className={styles.grid}>
-              <div className={styles.upper_middle}>
-                <GoalSpeed goalSpeed={this.state.goalSpeed} active={this.state.active}/>
-                <CurrentSpeed active={this.state.active} currentSpeed={this.state.currentSpeed}/>
-              </div>
-                <Timer parentCallback={this.handleTimerCallback} activeCallback={this.handleActiveCallback} active={this.state.active} currentTime={this.state.currentTime} goalSpeed={this.state.goalSpeed} currentSpeed={this.state.currentSpeed}/>
+              <Grid container>
+                {[
+                  {
+                    title: "Goal Speed",
+                    label: `${state.goalSpeed || 0} mph`,
+                  },
+                  {
+                    title: "Current Speed",
+                    label: `${state.currentSpeed || 0} mph`,
+                  },
+                ].map((obj) => (
+                  <Grid
+                    item
+                    xs={6}
+                    alignItems="center"
+                    container
+                    direction="column"
+                  >
+                    <Flipped flipId={obj.title}>
+                      <div
+                        className={styles.upper_middle_top_card}
+                        style={{
+                          transform: `translateY(${state.active ? 0 : -200}%)`,
+                        }}
+                      >
+                        <UpperCard
+                          title={obj.title}
+                          label={obj.label}
+                        />
+                      </div>
+                    </Flipped>
+                  </Grid>
+                ))}
+              </Grid>
+              <Timer
+                parentCallback={handleTimerCallback}
+                activeCallback={handleActiveCallback}
+                active={state.active}
+                currentTime={state.currentTime}
+                goalSpeed={state.goalSpeed}
+                currentSpeed={state.currentSpeed}
+              />
             </div>
             <div className={styles.right_grid}>
-              {this.state.blocks.map( (item, index) => {
-                if(index > this.state.currentBlockIndex)
-                  return <Zone time={item.time} intensity={item.intensity} id={index}/>
-              })}
+              {state.blocks.map((item, index) => (
+                <Flipped flipId={`zone-${index}`} stagger>
+                  <div
+                    style={{
+                      transform: `translateX(${state.active ? 0 : 100}%)`,
+                    }}
+                  >
+                    <Zone
+                      key={index}
+                      time={item.time}
+                      intensity={item.intensity}
+                      id={index}
+                    />
+                  </div>
+                </Flipped>
+              ))}
             </div>
           </main>
         </div>
-      )
-    }
+      </Flipper>
+    );
   }
 }
 
-export default withRouter(Workout)
+export default Workout;

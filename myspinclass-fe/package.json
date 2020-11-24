@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
     "axios": "^0.21.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -15,6 +16,7 @@
     "next": "^10.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-flip-toolkit": "^7.0.13",
     "swr": "^0.3.8",
     "unfetch": "^4.2.0"
   },
